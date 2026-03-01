@@ -50,9 +50,16 @@ echo "$WORKSPACE_PATH" > "$CURRENT_DIR/.claude/current-parallel-workspace.txt"
 echo ""
 echo "✓ Parallel workspace created at: $WORKSPACE_PATH"
 
-# If using Laravel Herd, show the auto-generated URL and open in browser
+# If using Laravel Herd, link the site and show the URL
 if command -v herd &> /dev/null; then
-    HERD_URL="${REPO_NAME}-parallel-${TIMESTAMP}.test"
+    WORKSPACE_NAME=$(basename "$WORKSPACE_PATH")
+    HERD_URL="${WORKSPACE_NAME}.test"
+
+    # Explicitly link the site in Herd (parked directories may not include ~/code)
+    echo "Linking site in Laravel Herd..."
+    cd "$WORKSPACE_PATH"
+    herd link
+
     echo "✓ Laravel Herd URL: http://${HERD_URL}"
     echo ""
     echo "  Opening in browser..."
