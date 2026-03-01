@@ -68,6 +68,21 @@ if [ -f .claude/current-parallel-workspace.txt ]; then
     WORKSPACE_PATH=$(cat .claude/current-parallel-workspace.txt)
 
     if [ -d "$WORKSPACE_PATH" ]; then
+        # Clean up Herd site first (if Herd is installed)
+        if command -v herd &> /dev/null; then
+            echo "Cleaning up Laravel Herd site..."
+            cd "$WORKSPACE_PATH"
+
+            # Stop the site if it's running
+            herd stop 2>/dev/null || true
+
+            # Unlink/forget the site from Herd
+            herd unlink 2>/dev/null || true
+
+            echo "✓ Herd site stopped and unlinked"
+            cd - > /dev/null
+        fi
+
         # Remove the entire directory
         echo "Removing: $WORKSPACE_PATH"
         rm -rf "$WORKSPACE_PATH"
@@ -75,19 +90,18 @@ if [ -f .claude/current-parallel-workspace.txt ]; then
         echo "✓ Parallel workspace deleted!"
         echo "✓ Disk space freed up"
 
-        # If Herd is installed, it will auto-cleanup the .test domain
         if command -v herd &> /dev/null; then
-            echo "✓ Laravel Herd will auto-remove the .test domain"
+            echo "✓ Herd site completely removed"
         fi
     else
-        echo "Directory already removed."
+        echo "⚠ Directory already removed."
     fi
 
     # Clean up tracking file
     rm .claude/current-parallel-workspace.txt
     echo "✓ Cleanup complete!"
 else
-    echo "No parallel workspace to clean up."
+    echo "⚠ No parallel workspace to clean up."
 fi
 ```
 
@@ -96,7 +110,19 @@ fi
 Confirm the directory is gone:
 
 ```bash
-ls -la ../ | grep parallel || echo "✓ No parallel workspaces found"
+echo "Checking for remaining parallel workspaces..."
+ls -la ../ | grep parallel || echo "✓ No parallel workspace directories found"
+
+# If Herd is installed, verify the site is unlinked
+if command -v herd &> /dev/null; then
+    echo ""
+    echo "Checking Herd sites..."
+    if herd list | grep -i parallel; then
+        echo "⚠️  Found parallel sites still linked in Herd (may need manual cleanup)"
+    else
+        echo "✓ No parallel sites found in Herd"
+    fi
+fi
 ```
 
 ---
