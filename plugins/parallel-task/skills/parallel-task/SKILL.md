@@ -37,11 +37,25 @@ WORKSPACE_PATH="${PARENT_DIR}/${REPO_NAME}-parallel-${TIMESTAMP}"
 echo "Creating duplicate at: $WORKSPACE_PATH"
 rsync -a --exclude='.git' "$CURRENT_DIR/" "$WORKSPACE_PATH/"
 
+# Update .env to use the new parallel workspace URL
+WORKSPACE_NAME=$(basename "$WORKSPACE_PATH")
+if [ -f "$WORKSPACE_PATH/.env" ]; then
+    sed -i '' "s|APP_URL=.*|APP_URL=https://${WORKSPACE_NAME}.test|g" "$WORKSPACE_PATH/.env"
+    echo "✓ Updated APP_URL in .env to https://${WORKSPACE_NAME}.test"
+fi
+
 # Initialize fresh git repo in the duplicate
 cd "$WORKSPACE_PATH"
 git init
 git add .
 git commit -m "Initial commit for parallel task: $ARGUMENTS"
+
+# Clear Laravel caches to ensure clean state
+if [ -f "artisan" ]; then
+    php artisan config:clear
+    php artisan cache:clear
+    echo "✓ Cleared Laravel caches"
+fi
 
 # Store the workspace path for cleanup later
 mkdir -p "$CURRENT_DIR/.claude"
@@ -53,19 +67,25 @@ echo "✓ Parallel workspace created at: $WORKSPACE_PATH"
 # If using Laravel Herd, link the site and show the URL
 if command -v herd &> /dev/null; then
     WORKSPACE_NAME=$(basename "$WORKSPACE_PATH")
-    HERD_URL="${WORKSPACE_NAME}.test"
 
-    # Explicitly link the site in Herd (parked directories may not include ~/code)
-    echo "Linking site in Laravel Herd..."
+    # Link and secure the site in Laravel Herd
+    echo "Linking and securing site in Laravel Herd..."
     cd "$WORKSPACE_PATH"
     herd link
+    herd secure
 
-    echo "✓ Laravel Herd URL: http://${HERD_URL}"
+    HERD_URL="https://${WORKSPACE_NAME}.test"
+    echo "✓ Laravel Herd URL: ${HERD_URL}"
+
+    # Ensure Herd services are running
+    herd restart "$WORKSPACE_NAME"
+    echo "✓ Herd services restarted"
+
     echo ""
     echo "  Opening in browser..."
 
     # Open the URL in default browser
-    open "http://${HERD_URL}"
+    open "${HERD_URL}"
 
     echo "✓ Browser opened to parallel workspace!"
 else
