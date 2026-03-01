@@ -1,0 +1,17 @@
+{
+  "name": "claude-parallel-task",
+  "owner": {
+    "name": "ElliotPutt"
+  },
+  "metadata": {
+    "description": "Create parallel workspaces for Laravel Herd and other dev environments"
+  },
+  "plugins": [
+    {
+      "name": "parallel-task",
+      "source": "./plugins/parallel-task",
+      "description": "Create and manage parallel workspaces by duplicating your entire project directory. Perfect for Laravel Herd environments where you need to run and test changes in isolation.",
+      "version": "1.0.0"
+    }
+  ]
+}

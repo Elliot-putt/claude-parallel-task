@@ -1,0 +1,7 @@
+{
+  "name": "parallel-task",
+  "description": "Create and manage parallel workspaces by duplicating your entire project directory. Perfect for Laravel Herd environments where you need to run and test changes in isolation.",
+  "author": {
+    "name": "ElliotPutt"
+  }
+}
