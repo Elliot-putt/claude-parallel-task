@@ -100,6 +100,13 @@ if [ -f .claude/current-parallel-workspace.txt ]; then
     # Clean up tracking file
     rm .claude/current-parallel-workspace.txt
     echo "✓ Cleanup complete!"
+
+    # Restart Herd to ensure clean state
+    if command -v herd &> /dev/null; then
+        echo "Restarting Herd services..."
+        herd restart
+        echo "✓ Herd services restarted"
+    fi
 else
     echo "⚠ No parallel workspace to clean up."
 fi
